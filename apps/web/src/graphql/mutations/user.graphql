@@ -1,0 +1,19 @@
+# import '../fragments/user.graphql'
+
+mutation CreateUser($createUserInput: CreateUserInput!) {
+  createUser(createUserInput: $createUserInput) {
+    ...user
+  }
+}
+
+mutation UpdateUser($id: ID!, $updateUserInput: UpdateUserInput!) {
+  updateUser(id: $id, updateUserInput: $updateUserInput) {
+    ...user
+  }
+}
+
+mutation RemoveUser($id: ID!) {
+  removeUser(id: $id) {
+    id
+  }
+}

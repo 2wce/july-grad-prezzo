@@ -1,0 +1,5 @@
+fragment post on Post {
+  id
+  title
+  published
+}

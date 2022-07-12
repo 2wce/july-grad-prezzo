@@ -1,0 +1,65 @@
+image: sovtech/bitbucket-pipelines-node-aws:latest
+
+definitions:
+  steps:
+    - step: &build
+        deployment: test
+        caches:
+          - node
+        script:
+          # Install CLI dependencies
+          - npm i -g graphql-cli
+          # Install app dependencies
+          - yarn
+          - echo ${REACT_APP_API_HOST}/graphql
+          - yarn generate
+          # Run AWS Deploy
+          - yarn build
+          - aws s3 sync --delete build $S3_BUCKET
+          - aws configure set preview.cloudfront true
+          - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DIST --paths "/*"
+          - npx semantic-release --repository-url ${BITBUCKET_GIT_HTTP_ORIGIN}
+
+pipelines:
+  custom:
+    deploy-to-dev:
+      - step: *build
+
+    deploy-to-uat:
+      - step:
+          <<: *build
+          deployment: staging
+
+    deploy-to-live:
+      - step:
+          <<: *build
+          deployment: production
+
+  branches:
+    # Auto deploy to DEV on merge to develop with option to promote
+    develop:
+      - step:
+          <<: *build
+          name: Deploy to DEV
+          deployment: test
+
+      - step:
+          name: Create Release
+          trigger: manual
+          clone:
+            depth: full
+          script:
+            - sh release.sh
+
+    # Auto deploy to UAT on merge to master with option to promote
+    master:
+      - step:
+          <<: *build
+          name: Deploy to UAT
+          deployment: staging
+
+      - step:
+          <<: *build
+          name: Deploy to LIVE
+          trigger: manual
+          deployment: production

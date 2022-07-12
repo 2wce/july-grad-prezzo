@@ -1,0 +1,13 @@
+# import '../fragments/user.graphql'
+
+query users {
+  users {
+    ...user
+  }
+}
+
+query user($id: ID!) {
+  user(id: $id) {
+    ...user
+  }
+}
